@@ -1,0 +1,5 @@
+Context :This is the main source of truth please follow step by step approach we do one step at a time
+Step1:Create a structure of Two Tabs pne for Notes one for IntelliAI we use to pull up Interview for users using Opensource models which is free of cost
+      Also should have a user settings tab to cnage name and emails etc.
+Step2: Backend logic of the frontend we create We have to integrate all our Interview into notes and put them in notes for every call of user and Notes Tab is for user to create manual notes There shousl be features of Summarizing the notes and Sppec to text conversion also in the notes tab
+Step3 :Integrate all backend and frontend get a fully avaliable app for this use case

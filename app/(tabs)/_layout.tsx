@@ -30,14 +30,31 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }: { color: string }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="notes"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Notes',
+          tabBarIcon: ({ color }: { color: string }) => <IconSymbol size={28} name="note.text" color={color} />,
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="intelliai"
+        options={{
+          title: 'IntelliAI',
+          tabBarIcon: ({ color }: { color: string }) => <IconSymbol size={28} name="brain.head.profile" color={color} />,
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ color }: { color: string }) => <IconSymbol size={28} name="brain.head.profile" color={color} />,
+          headerShown: false,
         }}
       />
     </Tabs>

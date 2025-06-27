@@ -13,9 +13,9 @@ const firebaseConfig = {
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
   measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
-
+console.log("Firebase config:", firebaseConfig);
 const app = initializeApp(firebaseConfig);
-
+console.log("Firebase app initialized:", app);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const storage = getStorage(app);

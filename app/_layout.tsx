@@ -23,6 +23,7 @@ export default function RootLayout() {
       <Stack>
         {/* <Stack.Screen name="(tabs)" options={{ headerShown: false }} /> */}
         {/* <Stack.Screen name="(Home)" options={{ headerShown: false }} /> */}
+        {/*Test for push*/}
          <Stack.Screen name="auth" options={{ headerShown: false }} />
          <Stack.Screen name="(notes)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />

@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import { AIService } from "../config/AIService"
 import { supabase } from "../config/supabase"
 import { useAuthStore } from "./authStore"
 
@@ -22,6 +23,7 @@ interface NotesState {
   selectedTags: string[]
   isLoading: boolean
   error: string | null
+  isProcessingAI: boolean
 
   // Actions
   fetchNotes: () => Promise<void>
@@ -32,7 +34,11 @@ interface NotesState {
   setSearchQuery: (query: string) => void
   setSelectedTags: (tags: string[]) => void
   clearError: () => void
+
+  // AI Actions
   summarizeNote: (id: string) => Promise<void>
+  enhanceNote: (id: string, type: "grammar" | "expand" | "simplify") => Promise<void>
+  addSpeechNote: () => Promise<string>
 }
 
 export const useNotesStore = create<NotesState>((set, get) => ({
@@ -41,6 +47,7 @@ export const useNotesStore = create<NotesState>((set, get) => ({
   selectedTags: [],
   isLoading: false,
   error: null,
+  isProcessingAI: false,
 
   fetchNotes: async () => {
     const user = useAuthStore.getState().user
@@ -158,7 +165,50 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     const note = get().notes.find((n) => n.id === id)
     if (!note) return
 
-    const summary = `Summary: ${note.content.substring(0, 100)}...`
-    await get().updateNote(id, { summary })
+    console.log("Summarizing note:", id)
+    set({ isProcessingAI: true })
+
+    try {
+      const summary = await AIService.summarizeText(note.content)
+      await get().updateNote(id, { summary })
+    } catch (error) {
+      console.error("Summarization error:", error)
+      set({ error: "Failed to summarize note. Please try again." })
+    } finally {
+      set({ isProcessingAI: false })
+    }
+  },
+
+  enhanceNote: async (id, type) => {
+    const note = get().notes.find((n) => n.id === id)
+    if (!note) return
+
+    console.log("Enhancing note:", id, type)
+    set({ isProcessingAI: true })
+
+    try {
+      const enhancedContent = await AIService.enhanceNote(note.content, type)
+      await get().updateNote(id, { content: enhancedContent })
+    } catch (error) {
+      console.error("Enhancement error:", error)
+      set({ error: "Failed to enhance note. Please try again." })
+    } finally {
+      set({ isProcessingAI: false })
+    }
+  },
+
+  addSpeechNote: async () => {
+    console.log("Starting speech-to-text...")
+    set({ isProcessingAI: true })
+
+    try {
+      const transcribedText = await AIService.speechToText()
+      set({ isProcessingAI: false })
+      return transcribedText
+    } catch (error) {
+      console.error("Speech-to-text error:", error)
+      set({ isProcessingAI: false, error: (error as Error).message })
+      throw error
+    }
   },
 }))

@@ -10,7 +10,7 @@ interface AuthState {
   isLoading: boolean
   isAuthenticated: boolean
   error: string | null
-  pendingEmailConfirmation: string | null // Email waiting for confirmation
+  pendingEmailConfirmation: string | null
 
   // Actions
   signIn: (
@@ -28,6 +28,7 @@ interface AuthState {
   initialize: () => Promise<void>
   clearError: () => void
   clearPendingConfirmation: () => void
+  createUserProfile: (userId: string, fullName: string) => Promise<void>
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -39,6 +40,36 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       error: null,
       pendingEmailConfirmation: null,
+
+      createUserProfile: async (userId: string, fullName: string) => {
+        try {
+          console.log("Creating profile for user:", userId)
+
+          // Check if profile already exists
+          const { data: existingProfile } = await supabase.from("profiles").select("id").eq("user_id", userId).single()
+
+          if (existingProfile) {
+            console.log("Profile already exists")
+            return
+          }
+
+          // Create new profile
+          const { error } = await supabase.from("profiles").insert({
+            user_id: userId,
+            full_name: fullName,
+          })
+
+          if (error) {
+            console.error("Profile creation error:", error)
+            throw error
+          }
+
+          console.log("Profile created successfully")
+        } catch (error) {
+          console.error("Failed to create profile:", error)
+          // Don't throw error to prevent blocking auth flow
+        }
+      },
 
       signIn: async (email: string, password: string) => {
         console.log("Attempting sign in for:", email)
@@ -55,7 +86,6 @@ export const useAuthStore = create<AuthState>()(
           if (error) {
             console.error("Sign in error:", error)
 
-            // Handle specific error cases
             if (error.message.includes("Email not confirmed")) {
               set({
                 isLoading: false,
@@ -116,7 +146,6 @@ export const useAuthStore = create<AuthState>()(
           if (error) {
             console.error("Sign up error:", error)
 
-            // Handle specific error cases
             if (error.message.includes("User already registered")) {
               set({ isLoading: false, error: "An account with this email already exists. Please sign in instead." })
               return { success: false, error: "User already exists" }
@@ -131,6 +160,11 @@ export const useAuthStore = create<AuthState>()(
             return { success: false, error: error.message }
           }
 
+          // Create profile for the user
+          if (data.user) {
+            await get().createUserProfile(data.user.id, fullName)
+          }
+
           // Check if user needs email confirmation
           if (data.user && !data.session) {
             console.log("User created but needs email confirmation")
@@ -140,35 +174,12 @@ export const useAuthStore = create<AuthState>()(
               pendingEmailConfirmation: email,
             })
 
-            // Create profile for the user even though they haven't confirmed email yet
-            if (data.user) {
-              console.log("Creating profile for user:", data.user.id)
-              const { error: profileError } = await supabase.from("profiles").insert({
-                user_id: data.user.id,
-                full_name: fullName,
-              })
-
-              if (profileError) {
-                console.error("Profile creation error:", profileError)
-              }
-            }
-
             return { success: true, needsConfirmation: true }
           }
 
           // User is automatically signed in (email confirmation disabled)
           if (data.user && data.session) {
             console.log("User created and automatically signed in")
-
-            // Create profile
-            const { error: profileError } = await supabase.from("profiles").insert({
-              user_id: data.user.id,
-              full_name: fullName,
-            })
-
-            if (profileError) {
-              console.error("Profile creation error:", profileError)
-            }
 
             set({
               user: data.user,
@@ -271,10 +282,16 @@ export const useAuthStore = create<AuthState>()(
           })
 
           // Listen for auth changes
-          supabase.auth.onAuthStateChange((event, session) => {
+          supabase.auth.onAuthStateChange(async (event, session) => {
             console.log("Auth state changed:", event, !!session)
 
-            if (event === "SIGNED_IN") {
+            if (event === "SIGNED_IN" && session?.user) {
+              // Ensure profile exists when user signs in
+              const fullName = session.user.user_metadata?.full_name || ""
+              if (fullName) {
+                await get().createUserProfile(session.user.id, fullName)
+              }
+
               set({
                 user: session?.user ?? null,
                 session,

@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "IntelliPrep",
-    "slug": "IntelliPrep",
+    "slug": "intelliprep",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -9,10 +9,14 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSSpeechRecognitionUsageDescription": "This app uses speech recognition to convert your speech to text.",
+        "NSMicrophoneUsageDescription": "This app uses microphone to record audio for speech recognition."
+      }
     },
     "android": {
-      "bundler":"metro",
+      "bundler": "metro",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -22,7 +26,8 @@
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.INTERNET",
-        "android.permission.ACCESS_NETWORK_STATE"
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
       ]
     },
     "web": {
@@ -54,7 +59,11 @@
     "extra": {
       "router": {
         "origin": false
+      },
+      "eas": {
+        "projectId": "e2ef4150-fe72-4442-9ed3-41dbd3bd3ec9"
       }
-    }
+    },
+    "owner": "ajay1106"
   }
 }
